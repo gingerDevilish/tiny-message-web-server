@@ -28,7 +28,7 @@ class _Twit(val id: Int,
             var parent: Option[Int] = None,
             var retwits: mutable.HashSet[Int] = mutable.HashSet[Int](),
             var updated: Option[Long] = None) {
-  def toCase(): Twit = {
+  def toCase: Twit = {
     Twit(id, text, author, submitted, parent, updated)
   }
 }
@@ -53,9 +53,11 @@ case class Token(token: String)
 class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
 
   var users: mutable.HashMap[Int, User] = mutable.HashMap[Int, User]()
-  val md = MessageDigest.getInstance("MD5")
-  var valid_tokens = mutable.HashSet[Token]()
-  var twits = mutable.HashMap[Int, _Twit]()
+  val md: MessageDigest = {
+    MessageDigest.getInstance("MD5")
+  }
+  var valid_tokens: mutable.HashSet[Token] = mutable.HashSet[Token]()
+  var twits: mutable.HashMap[Int, _Twit] = mutable.HashMap[Int, _Twit]()
 
   def hmac_md5(K: String, D: String): String = {
     def hash(s: String): String = {
@@ -86,9 +88,9 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
     extractPayload(token).id
   }
 
-  def extractPayload(token: String) = {
+  def extractPayload(token: String): JWTPayload = {
     parse(Base64
-      .getUrlDecoder()
+      .getUrlDecoder
       .decode(token.split(".")(1))
       .map(_.toChar)
       .mkString)
@@ -97,7 +99,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
 
   post("/register/") {
     val credentials = parsedBody.extract[Credentials]
-    if (users.values.find(_.email == credentials.email).nonEmpty) {
+    if (users.values.exists(_.email == credentials.email)) {
       Forbidden(Error("User with this email already exists."))
     }
     else {
@@ -172,21 +174,22 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
     }
     else {
       val time = System.currentTimeMillis()
-      if (twits.get(params("id").toInt).isEmpty) {
+      val twit_id = params("id").toInt
+      if (twits.get(twit_id).isEmpty) {
         NotFound()
       }
       else {
         val userid = getUserId(params("token"))
-        if (users(userid).twits.find(_ == params("id").toInt).isEmpty) {
+        if (users(userid).twits.contains(twit_id)) {
           Forbidden(Error("You only can edit your own twits"))
         }
         else {
-          if (twits(params("id").toInt).parent.isEmpty) {
-            if (twits(params("id").toInt).retwits.size == 0) {
-              val twit = twits.get(params("id").toInt).get
+          val twit = twits(twit_id)
+          if (twit.parent.isEmpty) {
+            if (twit.retwits.isEmpty) {
               twit.text = parsedBody.extract[MessageString].text
               twit.updated = Some(time)
-              twits.update(params("id").toInt, twit)
+              twits.update(twit_id, twit)
               Ok()
             }
             else {
@@ -206,21 +209,22 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
       Forbidden(Error("Log in to delete twits"))
     }
     else {
-      if (twits.get(params("id").toInt).isEmpty) {
+      val twit_id = params("id").toInt
+      if (twits.get(twit_id).isEmpty) {
         NotFound()
       }
       else {
         val userid = getUserId(params("token"))
-        if (users(userid).twits.find(_ == params("id").toInt).isEmpty) {
+        if (!users(userid).twits.contains(twit_id)) {
           Forbidden(Error("You only can delete your own twits"))
         }
         else {
           val retwits = twits.clone()
-          retwits.filter(_._2.parent == Some(params("id").toInt))
+          retwits.filter(_._2.parent.contains(twit_id))
           retwits.foreach((f: (Int, _Twit)) => users(f._2.author).twits -= f._1)
           twits --= retwits.keys
-          users(userid).twits -= params("id").toInt
-          twits.remove(params("id").toInt)
+          users(userid).twits -= twit_id
+          twits.remove(twit_id)
           Ok()
         }
       }
@@ -258,7 +262,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
             p._2.parent.nonEmpty && all_twits_ids.contains(p._2.parent.get))
         .keys
       Ok((all_twits_ids ++ retwits)
-        .map(twits(_).toCase())
+        .map(twits(_).toCase)
         .toList
         .sortBy(_.submitted))
     }
@@ -279,7 +283,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
       NotFound()
     }
     else {
-      Ok(users(params("id").toInt).twits.map(twits(_).toCase()))
+      Ok(users(params("id").toInt).twits.map(twits(_).toCase))
     }
   }
 
