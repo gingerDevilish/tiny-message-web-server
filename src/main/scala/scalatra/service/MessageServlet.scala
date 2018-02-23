@@ -4,41 +4,70 @@ import java.security.MessageDigest
 import java.util.Base64
 
 import org.json4s.native.Serialization.write
+import org.json4s.native.JsonMethods._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
 
 import scala.collection.mutable
 
+import Types._
+import Data._
+
+object Types {
+  type Timestamp = Long
+  type UserID = Int
+  type TwitID = Int
+}
+
+object Data {
+  var users: mutable.HashMap[UserID, User] = mutable.HashMap[UserID, User]()
+  var valid_tokens: mutable.HashMap[String, JWToken] = mutable.HashMap[String, JWToken]()
+  var twits: mutable.HashMap[TwitID, _Twit] = mutable.HashMap[TwitID, _Twit]()
+  val one_day: Timestamp = 1000 * 60 * 60 * 24
+}
+
 case class MessageString(text: String)
 
-class User(val id: Int,
+class User(val id: UserID,
            val email: String,
            var nick: String,
            var pswd: String,
-           var twits: mutable.HashSet[Int] = mutable.HashSet[Int](),
-           var subscribed: mutable.HashSet[Int] = mutable.HashSet[Int]()) {
+           var twits: mutable.HashSet[TwitID] = mutable.HashSet[TwitID](),
+           var subscribed: mutable.HashSet[UserID] = mutable.HashSet[UserID]()) {
 
 }
 
-class _Twit(val id: Int,
+object User {
+  val md: MessageDigest = {
+    MessageDigest.getInstance("SHA-1")
+  }
+
+  def hash(s: String): String = {
+    md.digest(s.toCharArray.map(_.toByte))
+      .map("%02X" format _)
+      .mkString
+  }
+}
+
+class _Twit(val id: TwitID,
             var text: String,
-            val author: Int,
-            val submitted: Long,
-            var parent: Option[Int] = None,
-            var retwits: mutable.HashSet[Int] = mutable.HashSet[Int](),
-            var updated: Option[Long] = None) {
+            val author: UserID,
+            val submitted: Timestamp,
+            var parent: Option[TwitID] = None,
+            var retwits: mutable.HashSet[TwitID] = mutable.HashSet[TwitID](),
+            var updated: Option[Timestamp] = None) {
   def toCase: Twit = {
     Twit(id, text, author, submitted, parent, updated)
   }
 }
 
-case class Twit(id: Int,
+case class Twit(id: TwitID,
                 text: String,
-                author: Int,
-                submitted: Long,
-                retwit: Option[Int] = None,
-                updated: Option[Long] = None)
+                author: UserID,
+                submitted: Timestamp,
+                parent: Option[TwitID] = None,
+                updated: Option[Timestamp] = None)
 
 case class Credentials(email: String, pswd: String, nick: Option[String] = None)
 
@@ -46,22 +75,15 @@ case class Error(msg: String)
 
 case class JWTHeader(alg: String = "HMAC_MD5", typ: String = "JWT")
 
-case class JWTPayload(id: Int, timestamp: Long, exp: Long = 1000 * 60 * 60 * 24)
+case class JWTPayload(id: UserID, timestamp: Timestamp, exp: Timestamp = one_day)
 
 case class Token(token: String)
 
-class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
-
-  var users: mutable.HashMap[Int, User] = mutable.HashMap[Int, User]()
-  val md: MessageDigest = {
-    MessageDigest.getInstance("MD5")
-  }
-  var valid_tokens: mutable.HashSet[Token] = mutable.HashSet[Token]()
-  var twits: mutable.HashMap[Int, _Twit] = mutable.HashMap[Int, _Twit]()
+class JWToken (val payload: JWTPayload, val pass: String) {
 
   def hmac_md5(K: String, D: String): String = {
     def hash(s: String): String = {
-      md.digest(s.toCharArray.map(_.toByte))
+      JWToken.md.digest(s.toCharArray.map(_.toByte))
         .map("%02X" format _)
         .mkString
     }
@@ -69,10 +91,29 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
     hash(K+hash(K+D))
   }
 
+  def toCase: Token = {
+    val load = write(payload)
+    val header_encoded = Base64.getUrlEncoder.encode(write(JWTHeader()).getBytes)
+    val payload_encoded = Base64.getUrlEncoder.encode(load.getBytes)
+    Token(header_encoded
+      + "."
+      + payload_encoded
+      + "."
+      + hmac_md5(pass, header_encoded + "." + payload_encoded))
+  }
+
+}
+
+object JWToken {
+  val md: MessageDigest = {
+    MessageDigest.getInstance("MD5")
+  }
+
   def checkToken(token: String): Boolean = {
-    if (valid_tokens.contains(Token(token))) {
-      if (extractPayload(token).exp < System.currentTimeMillis()) {
-        valid_tokens.remove(Token(token))
+    if (valid_tokens.contains(token)) {
+      val payload = extractPayload(token)
+      if (payload.timestamp + payload.exp < System.currentTimeMillis()) {
+        valid_tokens.remove(token)
         false
       }
       else {
@@ -84,7 +125,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
     }
   }
 
-  def getUserId(token: String): Int = {
+  def getUserId(token: String): UserID = {
     extractPayload(token).id
   }
 
@@ -96,6 +137,9 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
       .mkString)
       .extract[JWTPayload]
   }
+}
+
+class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
 
   post("/register/") {
     val credentials = parsedBody.extract[Credentials]
@@ -103,15 +147,15 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
       Forbidden(Error("User with this email already exists."))
     }
     else {
-      val max_id = users.values.maxBy(_.id).id
-      users += (max_id + 1) -> new User(max_id + 1,
+      val new_id = if (users.nonEmpty) users.values.maxBy(_.id).id+1 else 1
+      users += new_id -> new User(new_id,
         credentials.email,
         if (credentials.nick.nonEmpty)
           credentials.nick.get
         else
           credentials.email.split("@")(0),
-        credentials.pswd)
-      users(max_id + 1).subscribed += (max_id + 1)
+        User.hash(credentials.pswd))
+      users(new_id).subscribed += new_id
       Ok()
     }
   }
@@ -120,16 +164,9 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
     val credentials = parsedBody.extract[Credentials]
     val candidate = users.values.find(_.email == credentials.email)
     if (candidate.nonEmpty) {
-      if (candidate.get.pswd == credentials.pswd) {
-        val payload = write(JWTPayload(candidate.get.id, System.currentTimeMillis()))
-        val header_encoded = Base64.getUrlEncoder.encode(write(JWTHeader()).getBytes)
-        val payload_encoded = Base64.getUrlEncoder.encode(payload.getBytes)
-        val token = Token(header_encoded
-                    + "."
-                    + payload_encoded
-                    + "."
-                    + hmac_md5(credentials.pswd, header_encoded + "." + payload_encoded))
-        valid_tokens += token
+      if (User.hash(candidate.get.pswd) == credentials.pswd) {
+        val token = new JWToken(JWTPayload(candidate.get.id, System.currentTimeMillis()), credentials.pswd)
+        valid_tokens += token.toCase.token -> token
         Ok(token)
       }
       else {
@@ -142,34 +179,37 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   get("/logout/:token") {
-    val our_token = valid_tokens.find(_.token == params("token"))
+    val our_token = valid_tokens.get(params("token"))
     if (our_token.isEmpty) {
+      //If the user is unathorized, there is nothing bad if we just return success
+      //There is nothing else to do
+      //Why return error, when no access violation occurs?
       Ok()
     } else {
-      valid_tokens -= our_token.get
+      valid_tokens -= our_token.get.toCase.token
       Ok()
     }
   }
 
   post("/twit/:token") {
-    if (!checkToken(params("token"))) {
+    if (!JWToken.checkToken(params("token"))) {
       Forbidden(Error("Log in to create twits"))
     }
     else {
       val time = System.currentTimeMillis()
-      val maxid = twits.values.maxBy(_.id).id
-      val userid = getUserId(params("token"))
-      twits += (maxid + 1) -> new _Twit(maxid + 1,
+      val new_id = if (twits.nonEmpty) twits.values.maxBy(_.id).id+1 else 1
+      val userid = JWToken.getUserId(params("token"))
+      twits += new_id -> new _Twit(new_id,
                   parsedBody.extract[MessageString].text,
                   userid,
                   time)
-      users(userid).twits += maxid + 1
+      users(userid).twits += new_id
       Ok()
     }
   }
 
   put("/twit/:id/:token") {
-    if (!checkToken(params("token"))) {
+    if (!JWToken.checkToken(params("token"))) {
       Forbidden(Error("Log in to edit twits"))
     }
     else {
@@ -179,8 +219,8 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
         NotFound()
       }
       else {
-        val userid = getUserId(params("token"))
-        if (users(userid).twits.contains(twit_id)) {
+        val userid = JWToken.getUserId(params("token"))
+        if (!users(userid).twits.contains(twit_id)) {
           Forbidden(Error("You only can edit your own twits"))
         }
         else {
@@ -205,7 +245,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   delete("/twit/:id/:token") {
-    if (!checkToken(params("token"))) {
+    if (!JWToken.checkToken(params("token"))) {
       Forbidden(Error("Log in to delete twits"))
     }
     else {
@@ -214,14 +254,14 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
         NotFound()
       }
       else {
-        val userid = getUserId(params("token"))
+        val userid = JWToken.getUserId(params("token"))
         if (!users(userid).twits.contains(twit_id)) {
           Forbidden(Error("You only can delete your own twits"))
         }
         else {
           val retwits = twits.clone()
           retwits.filter(_._2.parent.contains(twit_id))
-          retwits.foreach((f: (Int, _Twit)) => users(f._2.author).twits -= f._1)
+          retwits.foreach((f: (TwitID, _Twit)) => users(f._2.author).twits -= f._1)
           twits --= retwits.keys
           users(userid).twits -= twit_id
           twits.remove(twit_id)
@@ -232,7 +272,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   post("/subscribe/:id/:token") {
-    if (!checkToken(params("token"))) {
+    if (!JWToken.checkToken(params("token"))) {
       Forbidden(Error("Log in to subscribe"))
     }
     else {
@@ -240,25 +280,24 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
         NotFound()
       }
       else {
-        users(getUserId(params("token"))).subscribed += params("id").toInt
+        users(JWToken.getUserId(params("token"))).subscribed += params("id").toInt
         Ok()
       }
     }
   }
 
   get("/feed/my/:token") {
-    if (!checkToken(params("token"))) {
+    if (!JWToken.checkToken(params("token"))) {
       Forbidden(Error("Log in to see your feed"))
     }
     else {
-      var all_twits_ids = new mutable.HashSet[Int]()
-      users(getUserId(params("token")))
+      val all_twits_ids = users(JWToken.getUserId(params("token")))
         .subscribed
-        .foreach(all_twits_ids ++= users(_).twits)
+        .flatMap(users(_).twits)
       val retwits = twits
         .clone()
         .filter(
-          (p: (Int, _Twit)) =>
+          (p: (TwitID, _Twit)) =>
             p._2.parent.nonEmpty && all_twits_ids.contains(p._2.parent.get))
         .keys
       Ok((all_twits_ids ++ retwits)
@@ -288,7 +327,7 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   post("/retwit/:id/:token") {
-    if (!checkToken(params("token"))) {
+    if (!JWToken.checkToken(params("token"))) {
       Forbidden(Error("Log in to subscribe"))
     }
     else {
@@ -298,15 +337,15 @@ class MessageServlet extends ScalatraServlet with JacksonJsonSupport {
         NotFound()
       }
       else {
-        val max_id = twits.values.maxBy(_.id).id
-        val userid = getUserId(params("token"))
-        twits += (max_id + 1) -> new _Twit(max_id + 1,
+        val new_id = if (twits.nonEmpty) twits.values.maxBy(_.id).id+1 else 1
+        val userid = JWToken.getUserId(params("token"))
+        twits += new_id -> new _Twit(new_id,
           twits(twit_id).text,
           userid,
           time,
-          Some(twit_id))
-        twits(twit_id).retwits += max_id + 1
-        users(userid).twits += max_id + 1
+          Some(if (twits(twit_id).parent.isEmpty) twit_id else twits(twit_id).parent.get))
+        twits(twit_id).retwits += new_id
+        users(userid).twits += new_id
         Ok()
       }
     }
