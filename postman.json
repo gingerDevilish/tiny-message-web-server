@@ -1,0 +1,1599 @@
+{
+	"info": {
+		"name": "Scala_assignment_2_Team_Charlie",
+		"_postman_id": "28bfd9ec-deab-48da-9cde-2c628bb1d4e1",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Register",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8a95cb6d-a6d2-4466-96c2-efdab5714e0f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"r2d2@rebels.com\",\n\t\"pswd\": \"penetrator3000\",\n\t\"nick\": \"penetrator\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/register/",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"register",
+						""
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Register of second user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8a95cb6d-a6d2-4466-96c2-efdab5714e0f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"awesome2000@rebels.com\",\n\t\"pswd\": \"awesome2000\",\n\t\"nick\": \"awesome2000\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/register/",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"register",
+						""
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Register with existing e-mail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6375ccd2-b8cf-4f6a-83ae-a68bb00d9f4a",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"User with this email already exists.\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"r2d2@rebels.com\",\n\t\"pswd\": \"penetrator6000\",\n\t\"nick\": \"other_penetrator\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/register",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"register"
+					]
+				},
+				"description": "Should take 403"
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e99ff4cf-1f00-4faa-a04b-aff4bd7deb9f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var token = pm.response.json().token",
+							"pm.globals.set(\"token\", token);",
+							"",
+							"var payload = atob(token.split(\".\")[1]);",
+							"var userid = JSON.parse(payload).id;",
+							"pm.globals.set(\"user_id\", userid);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"r2d2@rebels.com\",\n\t\"pswd\": \"penetrator3000\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Login the second user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "19269deb-3dd6-415d-88ae-07d93d80273f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var token = pm.response.json().token",
+							"pm.globals.set(\"token_of_second_user\", token);",
+							"",
+							"var payload = atob(token.split(\".\")[1]);",
+							"var userid = JSON.parse(payload).id;",
+							"pm.globals.set(\"second_user_id\", userid);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"awesome2000@rebels.com\",\n\t\"pswd\": \"awesome2000\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Login invalid e-mail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9b3508ab-f456-4624-abae-5f9c98da42e4",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Invalid email or password\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"awesome@.com\",\n\t\"pswd\": \"penetrator3000\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Login incorrect password",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5d1c8cc3-ebb4-4c54-9307-ad5b9a7c84ef",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Invalid email or password\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"r2d2@rebels.com\",\n\t\"pswd\": \"awesome3000\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Twit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1a877796-677b-4259-9e51-10e21f61a05e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var twit_id = pm.response.json().id;",
+							"pm.globals.set(\"first_twit_id\", twit_id);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"twit with correct token\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Twit with incorrect token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4af58d3b-2f2b-4bb8-9aac-6b667a16590d",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Log in to create twits\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"twit with incorrect token\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token=lel",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "lel",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Twit by second user with correct token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "24098e77-1c02-4256-8b31-77d799af9fa9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var twit_id = pm.response.json().id;",
+							"pm.globals.set(\"second_user_first_twit_id\", twit_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"awesome2000 twit\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token_of_second_user}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token_of_second_user}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "The same twit with correct token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4b6f25ea-4162-4605-bd2e-a25800477a89",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var twit_id = pm.response.json().id",
+							"pm.globals.set(\"second_twit_id\", twit_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"twit with correct token\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Edit twit by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cc5e47ab-3116-4cde-b30c-a393728a74b3",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"edit twit text\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}&id={{first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Edit twit by id with incorrect token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "df63b08a-9686-4498-a099-aac9598da134",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Log in to edit twits\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"ERROR: edit twit text with incorrect token\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token=lel&id={{first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "lel",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Edit twit with incorrect id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "45cf1077-f4f2-42f4-b83a-ac4490b807cb",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"ERROR: edit twit text with incorrect id\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}&id=-1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "-1",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Edit twit of second user by first user (by id)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c4f98118-1db9-40c5-97cd-056c81870eb9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"You only can edit your own twits\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"text\": \"ERROR: trying to edit twit of awesome2000\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}&id={{second_user_first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{second_user_first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Subscribe",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "de103fea-2dc2-4953-9f8a-3f5a27f12518",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/subscribe?token={{token}}&id={{second_user_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"subscribe"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{second_user_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Subscribe on unexisting person",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "359ddad9-3838-45c3-8e9c-7e734dc531db",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/subscribe?token={{token}}&id=-1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"subscribe"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "-1",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Subscribe with incorrect token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2267937f-5199-43e1-85e1-7f68ab1287a9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Log in to subscribe\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/subscribe?token=lol&id={{second_user_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"subscribe"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "lol",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{second_user_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Get twit by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1561f3ec-5c1f-49bd-82a8-5644e777ff84",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "localhost:8080/twit?id={{first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "{{first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Feed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9d55a3cf-2ef8-44c4-8972-05ca5649573e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/feed/my?token={{token}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"feed",
+						"my"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Feed with incorrect token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ddd65a9a-6f65-484e-ae2c-00531dd19dc8",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Log in to see your feed\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/feed/my?token=lol",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"feed",
+						"my"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "lol",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Twits",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9d55a3cf-2ef8-44c4-8972-05ca5649573e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/twits?id={{first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twits"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "{{first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Twits with incorrect id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3b61aa5d-0352-4959-9d5d-650070cf17fd",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/twits?id=-1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twits"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "-1",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Retwit with incorrect token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1a7d0502-8e83-4ced-8b19-c5e03f792bdd",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Log in to subscribe\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "{{token}}"
+					},
+					{
+						"key": "id",
+						"value": "{{second_twit_id}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/retwit?token=lol",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"retwit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "lol",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Retwit of unexisting twit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fe6f0171-5fa0-45f7-a4e6-75c147c9a7f1",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "{{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/retwit?token={{token}}&id=-1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"retwit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "-1",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Retwit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0d5b28ed-1bf4-4492-9cfc-64e6c395cb24",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "{{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/retwit?token={{token}}&id={{second_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"retwit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{second_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Delete twit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4b3ac4a3-23df-4c3e-9752-1ad1cbb33ded",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}&id={{first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Delete twit with incorrect token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3bbfa114-0478-4f1a-8d2f-be0f3e06566e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"Log in to delete twits\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token=lol&id={{first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "lol",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Delete unexisting twit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0b9f0bd6-9a12-4aa4-a48d-672f2b4abea3",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}&id=-1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "-1",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Delete not own twit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d87ed097-a08f-4635-9465-ee745b2865df",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"\\{\\\"msg\\\":\\\"You only can delete your own twits\\\"\\}\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/twit?token={{token}}&id={{second_user_first_twit_id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"twit"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						},
+						{
+							"key": "id",
+							"value": "{{second_user_first_twit_id}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Incorrect logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4b0f1822-cfbf-43e0-bb8d-3137feb41209",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/logout?token=123",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logout"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "123",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ff567b71-e68a-40aa-acec-0d85e065a587",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/logout?token={{token}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logout"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		}
+	]
+}

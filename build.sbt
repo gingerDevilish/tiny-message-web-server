@@ -6,7 +6,7 @@ name := "Tiny Message Web Server"
 
 version := "0.1.0"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.1"
 
 resolvers += Classpaths.typesafeReleases
 
@@ -17,8 +17,8 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-webapp" % "9.4.8.v20171121" % "container",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scalatra" %% "scalatra-json" % ScalatraVersion,
-  "org.json4s"   %% "json4s-jackson" % "3.5.2",
-  "org.json4s" %% "json4s-native" % "3.5.2",
+  "org.json4s"   %% "json4s-jackson" % "3.5.3",
+  "org.json4s" %% "json4s-native" % "3.5.3",
   "commons-codec" % "commons-codec" % "1.11"
 )
 
